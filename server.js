@@ -1,16 +1,33 @@
 const express = require('express');
+const app = express();
+const cors = require('cors');
 const dotenv = require('dotenv');
 const PORT = process.env.PORT || 5000;
-const logger = require('./middleware/logger'); //example logger middleware
-const morgan = require('morgan');
-
-//Route files
-const bootcampsRouter = require('./routes/bootcamps');
-
+const DBConnection = require('./config/dbConnection');
+const colors = require('colors');
+//const logger = require('./middleware/logger'); //example logger middleware
 //Load env 
 dotenv.config({ path: './config/config.env' });
+const morgan = require('morgan');
 
-const app = express();
+//Database connection
+DBConnection();
+
+//CORS Middleware
+app.use(cors());
+
+//Middleware
+/**
+ * Converts the JSON format code that comes from the browser
+ * and the server can handle 
+ */
+app.use(express.json());
+
+//Routers
+const bootcampsRouter = require('./routes/bootcamps');
+
+//Mount Routes
+app.use('/api/v1/bootcamps', bootcampsRouter);
 
 //custom middleware
 // app.use(logger);
@@ -20,10 +37,13 @@ if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
 }
 
-//Mount Routes
-app.use('/api/v1/bootcamps', bootcampsRouter);
+const server = app.listen(PORT, () => {
+    console.log(`App running in ${process.env.NODE_ENV} on port ${PORT}!`.yellow.bold);
+});
 
-
-app.listen(PORT, () => {
-    console.log(`App running in ${process.env.NODE_ENV} on port ${PORT}!`);
+//Hanlde unhandled promise rejections
+process.on('unhandledRejection', (err, promise) => {
+    console.log(`Error: ${err.message}`.red);
+    //Close server & exit process
+    server.close(() => process.exit(1));
 });
