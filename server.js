@@ -6,7 +6,8 @@ const PORT = process.env.PORT || 5000;
 const DBConnection = require('./config/dbConnection');
 const colors = require('colors');
 //const logger = require('./middleware/logger'); //example logger middleware
-//Load env 
+
+//Load env
 dotenv.config({ path: './config/config.env' });
 const morgan = require('morgan');
 
@@ -20,6 +21,7 @@ app.use(cors());
 /**
  * Converts the JSON format code that comes from the browser
  * and the server can handle 
+ * Body Parser
  */
 app.use(express.json());
 
