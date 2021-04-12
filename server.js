@@ -5,6 +5,7 @@ const dotenv = require('dotenv');
 const PORT = process.env.PORT || 5000;
 const DBConnection = require('./config/dbConnection');
 const colors = require('colors');
+const errorHandler = require('./middleware/error'); 
 //const logger = require('./middleware/logger'); //example logger middleware
 
 //Load env
@@ -31,8 +32,10 @@ const bootcampsRouter = require('./routes/bootcamps');
 //Mount Routes
 app.use('/api/v1/bootcamps', bootcampsRouter);
 
+//Middlewares after routes
 //custom middleware
 // app.use(logger);
+app.use(errorHandler);
 
 //Dev loggind middleware
 if (process.env.NODE_ENV === 'development') {
