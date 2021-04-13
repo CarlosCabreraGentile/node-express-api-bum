@@ -1,6 +1,7 @@
 'use strict';
 
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
+const slugify = require('slugify');
 // slug: friendly version url of the name
 
 var BootcampSchema = new mongoose.Schema({
@@ -100,5 +101,13 @@ var BootcampSchema = new mongoose.Schema({
     }
 });
 
-//Name saved in database
+// Create bootcamp slug for the name
+// Pre runs before the operation we want, and use a normal function
+// because arrow function handle the scope differently
+BootcampSchema.pre('save', function (next){
+    this.slug = slugify(this.name, { lower: true });
+    next();// move to the next piece of middleware
+}); 
+
+// Name saved in database --> bootcamps 
 module.exports = mongoose.model('Bootcamp', BootcampSchema);

@@ -70,6 +70,7 @@ let updateBootcamp = asyncHandler(async (req, res, next) => {
  * @route DELETE /api/v1/bootcamps/:id
  * @access Private
  */
+// Refactor version
 let deleteBootcamp = asyncHandler(async (req, res, next) => {
     const bootcamp = await Bootcamp.findByIdAndDelete(req.params.id);
 
@@ -81,6 +82,33 @@ let deleteBootcamp = asyncHandler(async (req, res, next) => {
 
     res.status(200).json({ success: true, data: bootcamp });
 });
+
+//Old Version
+// let deleteBootcamp = async (req, res, next) => {
+//     try {
+//       const bootcamp = await Bootcamp.findByIdAndDelete(req.params.id);
+  
+//       if (!bootcamp) {
+//         //only can return one thing so that the return
+//         //OPTION 1
+//         // return res.status(400).json({ success: false });
+//         //OPTION 2
+//         return next(
+//           new ErrorResponse(`Bootcamp not found with id: ${req.params.id}`, 404)
+//         );
+//       }
+  
+//       res.status(200).json({ success: true, data: bootcamp });
+//     } catch (err) {
+//       //OPTION 1
+//       // res.status(400).json({
+//       //     success: false,
+//       //     msg: err,
+//       // });
+//       //OPTION 2
+//       next(err);
+//     }
+//   };
 
 module.exports = {
   getBootcamps,
