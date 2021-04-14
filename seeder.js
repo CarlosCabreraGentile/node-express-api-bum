@@ -2,17 +2,20 @@ const fs = require('fs');
 const mongoose = require('mongoose');
 const connection = require('./config/db');
 const colors = require('colors');
-const dotenv = require('dotenv');
+const { mongodbURI } = require('./config/config');
 const Bootcamp = require('./models/Bootcamp');
+// const dotenv = require('dotenv'); // uncomment if no .env file
 
 // Load env variables
-dotenv.config({ path: './config/config.env' });
+// dotenv.config({ path: './config/config.env' }); // uncomment if no .env file
 
 // Connect to DB
 // OPTION 1
-mongoose.connect(connection.database, {
+// mongoose.connect(connection.database, {
 // OPTION 2
-// mongoose.connect(process.env.MONGO_URI, {    
+// mongoose.connect(process.env.MONGO_URI, { // uncomment if no .env file
+// OPTION 3
+mongoose.connect(mongodbURI, {    
   useUnifiedTopology: true,
   useNewUrlParser: true,
   useCreateIndex: true,

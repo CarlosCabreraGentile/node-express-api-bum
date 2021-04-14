@@ -2,7 +2,8 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const dotenv = require('dotenv');
-const PORT = process.env.PORT || 5000;
+const { port, nodeEnv } = require('./config/config') // with .env file
+const PORT = port || 5000;
 const DBConnection = require('./config/dbConnection');
 const colors = require('colors');
 const errorHandler = require('./middleware/error'); 
@@ -38,12 +39,13 @@ app.use('/api/v1/bootcamps', bootcampsRouter);
 app.use(errorHandler);
 
 //Dev loggind middleware
-if (process.env.NODE_ENV === 'development') {
+if (nodeEnv === 'development') {
     app.use(morgan('dev'));
 }
 
 const server = app.listen(PORT, () => {
     console.log(`App running in ${process.env.NODE_ENV} on port ${PORT}!`.yellow.bold);
+    // console.log(`App running in ${nodeEnv} on port ${PORT}!`.yellow.bold); // with .env file 
 });
 
 //Hanlde unhandled promise rejections
