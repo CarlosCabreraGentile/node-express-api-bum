@@ -4,6 +4,9 @@ const bootcampCtrl = require('../controllers/bootcamps');
 
 //create routes
 
+bootcampsRouter.route('/radius/:zipcode/:distance')
+    .get(bootcampCtrl.getBootcampsInRadius);
+
 bootcampsRouter.route('/')
     .get(bootcampCtrl.getBootcamps)
     .post(bootcampCtrl.createBootcamp);
