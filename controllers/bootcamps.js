@@ -9,7 +9,42 @@ const asyncHandler = require('../middleware/async');
  * @access Public
  */
 let getBootcamps = asyncHandler(async (req, res, next) => {
-  const bootcamps = await Bootcamp.find();
+  // Copy req.query
+  const reqQuery = { ...req.query };
+
+  // Fields to exclude, dont want to match as a field
+  const removeFields = ['select', 'sort'];
+
+  // Loop over removeFields and delete them from reqQuery
+  removeFields.forEach(param => delete reqQuery[param]);
+
+  // Create query string
+  let queryStr = JSON.stringify(reqQuery);
+
+  // Manipulate query string and add operator
+  queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
+  // { averageCost: { gte: '1000' }, 'location.city': 'Boston' }
+  // { averageCost: { $gte: '1000' }, 'location.city': 'Boston' }
+
+  // Finding resource
+  query = Bootcamp.find(JSON.parse(queryStr));
+
+  // Select Fields
+  if(req.query.select){
+    const fields = req.query.select.split(',').join(' ');
+    query = query.select(fields); // get only the fields from query parameters i.e name, description
+  }
+
+  // Sort
+  if(req.query.sort){
+    const sortBy = req.query.sort.split(',').join(' ');
+    query = query.sort(sortBy); // sort by specific parameter
+  } else{ //default value createdAt 
+    query = query.sort('-createdAt');
+  }
+  
+  // Execute query
+  const bootcamps = await query;
   res
     .status(200)
     .json({ success: true, count: bootcamps.length, data: bootcamps });
@@ -124,7 +159,7 @@ let getBootcampsInRadius = asyncHandler(async (req, res, next) => {
   const loc = await geocoder.geocode(zipcode);
   const lat = loc[0].latitude;
   const lng = loc[0].longitude;
-  
+
   // Calculate radius using radians
   // Divide distance by radius of earth
   // Earth radius = 3.963mi / 6.378km
