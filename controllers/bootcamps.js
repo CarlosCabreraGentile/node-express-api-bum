@@ -13,16 +13,19 @@ let getBootcamps = asyncHandler(async (req, res, next) => {
   const reqQuery = { ...req.query };
 
   // Fields to exclude, dont want to match as a field
-  const removeFields = ['select', 'sort'];
+  const removeFields = ['select', 'sort', 'page', 'limit'];
 
   // Loop over removeFields and delete them from reqQuery
-  removeFields.forEach(param => delete reqQuery[param]);
+  removeFields.forEach((param) => delete reqQuery[param]);
 
   // Create query string
   let queryStr = JSON.stringify(reqQuery);
 
   // Manipulate query string and add operator
-  queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
+  queryStr = queryStr.replace(
+    /\b(gt|gte|lt|lte|in)\b/g,
+    (match) => `$${match}`
+  );
   // { averageCost: { gte: '1000' }, 'location.city': 'Boston' }
   // { averageCost: { $gte: '1000' }, 'location.city': 'Boston' }
 
@@ -30,24 +33,59 @@ let getBootcamps = asyncHandler(async (req, res, next) => {
   query = Bootcamp.find(JSON.parse(queryStr));
 
   // Select Fields
-  if(req.query.select){
+  if (req.query.select) {
     const fields = req.query.select.split(',').join(' ');
     query = query.select(fields); // get only the fields from query parameters i.e name, description
   }
 
   // Sort
-  if(req.query.sort){
+  if (req.query.sort) {
     const sortBy = req.query.sort.split(',').join(' ');
     query = query.sort(sortBy); // sort by specific parameter
-  } else{ //default value createdAt 
+  } else {
+    //default value createdAt
     query = query.sort('-createdAt');
   }
-  
+
+  //Pagination
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 25;
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+  const total = await Bootcamp.countDocuments();
+
+  query = query.skip(startIndex).limit(limit);
+
   // Execute query
   const bootcamps = await query;
+
+  //Pagination result
+  const pagination = {};
+
+  // if we dont have a previous page then we dont want to show
+  // if we dont have a next page we dont want to show that
+  if (endIndex < total) {
+    pagination.next = {
+      page: page + 1,
+      limit: limit,
+    };
+  }
+
+  if (startIndex > 0) {
+    pagination.prev = {
+      page: page - 1,
+      limit: limit,
+    };
+  }
+
   res
     .status(200)
-    .json({ success: true, count: bootcamps.length, data: bootcamps });
+    .json({
+      success: true,
+      count: bootcamps.length,
+      pagination,
+      data: bootcamps,
+    });
 });
 
 /**
@@ -56,16 +94,16 @@ let getBootcamps = asyncHandler(async (req, res, next) => {
  * @access Public
  */
 let getBootcamp = asyncHandler(async (req, res, next) => {
-    const bootcamp = await Bootcamp.findById(req.params.id);
+  const bootcamp = await Bootcamp.findById(req.params.id);
 
-    if (!bootcamp) {
-      //only can return one thing so that the return
-      return next(
-        new ErrorResponse(`Bootcamp not found with id: ${req.params.id}`, 404)
-      );
-    }
+  if (!bootcamp) {
+    //only can return one thing so that the return
+    return next(
+      new ErrorResponse(`Bootcamp not found with id: ${req.params.id}`, 404)
+    );
+  }
 
-    res.status(200).json({ success: true, data: bootcamp });
+  res.status(200).json({ success: true, data: bootcamp });
 });
 
 /**
@@ -74,10 +112,9 @@ let getBootcamp = asyncHandler(async (req, res, next) => {
  * @access Private
  */
 let createBootcamp = asyncHandler(async (req, res, next) => {
-    const bootcamp = await Bootcamp.create(req.body);
+  const bootcamp = await Bootcamp.create(req.body);
 
-      res.status(201).json({ success: true, data: bootcamp });
-
+  res.status(201).json({ success: true, data: bootcamp });
 });
 
 /**
@@ -86,19 +123,18 @@ let createBootcamp = asyncHandler(async (req, res, next) => {
  * @access Private
  */
 let updateBootcamp = asyncHandler(async (req, res, next) => {
-    const bootcamp = await Bootcamp.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+  const bootcamp = await Bootcamp.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
 
-    if (!bootcamp) {
-      return next(
-        new ErrorResponse(`Bootcamp not found with id: ${req.params.id}`, 404)
-      );
-    }
+  if (!bootcamp) {
+    return next(
+      new ErrorResponse(`Bootcamp not found with id: ${req.params.id}`, 404)
+    );
+  }
 
-    res.status(200).json({ success: true, data: bootcamp });
-
+  res.status(200).json({ success: true, data: bootcamp });
 });
 
 /**
@@ -108,22 +144,22 @@ let updateBootcamp = asyncHandler(async (req, res, next) => {
  */
 // Refactor version
 let deleteBootcamp = asyncHandler(async (req, res, next) => {
-    const bootcamp = await Bootcamp.findByIdAndDelete(req.params.id);
+  const bootcamp = await Bootcamp.findByIdAndDelete(req.params.id);
 
-    if (!bootcamp) {
-      return next(
-        new ErrorResponse(`Bootcamp not found with id: ${req.params.id}`, 404)
-      );
-    }
+  if (!bootcamp) {
+    return next(
+      new ErrorResponse(`Bootcamp not found with id: ${req.params.id}`, 404)
+    );
+  }
 
-    res.status(200).json({ success: true, data: bootcamp });
+  res.status(200).json({ success: true, data: bootcamp });
 });
 
 //Old Version
 // let deleteBootcamp = async (req, res, next) => {
 //     try {
 //       const bootcamp = await Bootcamp.findByIdAndDelete(req.params.id);
-  
+
 //       if (!bootcamp) {
 //         //only can return one thing so that the return
 //         //OPTION 1
@@ -133,7 +169,7 @@ let deleteBootcamp = asyncHandler(async (req, res, next) => {
 //           new ErrorResponse(`Bootcamp not found with id: ${req.params.id}`, 404)
 //         );
 //       }
-  
+
 //       res.status(200).json({ success: true, data: bootcamp });
 //     } catch (err) {
 //       //OPTION 1
@@ -164,15 +200,15 @@ let getBootcampsInRadius = asyncHandler(async (req, res, next) => {
   // Divide distance by radius of earth
   // Earth radius = 3.963mi / 6.378km
   const radius = distance / 3963;
-  
+
   const bootcamps = await Bootcamp.find({
-    location: { $geoWithin: { $centerSphere: [ [ lng, lat ], radius ] } }
+    location: { $geoWithin: { $centerSphere: [[lng, lat], radius] } },
   });
 
   res.status(200).json({
     success: true,
     count: bootcamps.length,
-    data: bootcamps
+    data: bootcamps,
   });
 });
 
@@ -182,5 +218,5 @@ module.exports = {
   createBootcamp,
   updateBootcamp,
   deleteBootcamp,
-  getBootcampsInRadius
+  getBootcampsInRadius,
 };
