@@ -5,7 +5,7 @@ const geocoder = require('../utils/geocoder');
 const slugify = require('slugify');
 // slug: friendly version url of the name
 
-var BootcampSchema = new mongoose.Schema({
+const BootcampSchema = new mongoose.Schema({
     name: {
         type: String,
         required: [true, 'Please add a name'],

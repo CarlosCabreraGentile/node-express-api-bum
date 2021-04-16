@@ -3,7 +3,11 @@ const mongoose = require('mongoose');
 const connection = require('./config/db');
 const colors = require('colors');
 const { mongodbURI } = require('./config/config');
+
+// Load Models
 const Bootcamp = require('./models/Bootcamp');
+const Course = require('./models/Course');
+
 // const dotenv = require('dotenv'); // uncomment if no .env file
 
 // Load env variables
@@ -27,10 +31,15 @@ const bootcamps = JSON.parse(
   fs.readFileSync(`${__dirname}/_data/bootcamps.json`, 'utf-8')
 );
 
+const courses = JSON.parse(
+    fs.readFileSync(`${__dirname}/_data/courses.json`, 'utf-8')
+  );
+
 // Import into DB
 const importData = async () =>{
     try {
         await Bootcamp.create(bootcamps);
+        await Course.create(courses);
         console.log('DATA IMPORTED'.green.inverse);
         process.exit();
     } catch (error) {
@@ -42,6 +51,7 @@ const importData = async () =>{
 const deleteData = async () =>{
     try {
         await Bootcamp.deleteMany();
+        await Course.deleteMany();
         console.log('DATA DELETED'.red.inverse);
         process.exit();
     } catch (error) {
