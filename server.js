@@ -29,9 +29,11 @@ app.use(express.json());
 
 //Routers
 const bootcampsRouter = require('./routes/bootcamps');
+const coursesRouter = require('./routes/courses');
 
 //Mount Routes
 app.use('/api/v1/bootcamps', bootcampsRouter);
+app.use('/api/v1/courses', coursesRouter);
 
 //Middlewares after routes
 //custom middleware
