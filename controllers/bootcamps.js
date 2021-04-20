@@ -2,6 +2,7 @@ const ErrorResponse = require('../utils/errorResponse');
 const geocoder = require('../utils/geocoder');
 const Bootcamp = require('../models/Bootcamp');
 const asyncHandler = require('../middleware/async');
+const bootcampsRouter = require('../routes/bootcamps');
 
 /**
  * @description Get all Bootcamps
@@ -30,7 +31,7 @@ let getBootcamps = asyncHandler(async (req, res, next) => {
   // { averageCost: { $gte: '1000' }, 'location.city': 'Boston' }
 
   // Finding resource
-  query = Bootcamp.find(JSON.parse(queryStr));
+  query = Bootcamp.find(JSON.parse(queryStr)).populate('courses');
 
   // Select Fields
   if (req.query.select) {
@@ -144,13 +145,15 @@ let updateBootcamp = asyncHandler(async (req, res, next) => {
  */
 // Refactor version
 let deleteBootcamp = asyncHandler(async (req, res, next) => {
-  const bootcamp = await Bootcamp.findByIdAndDelete(req.params.id);
+  const bootcamp = await Bootcamp.findById(req.params.id);
 
   if (!bootcamp) {
     return next(
       new ErrorResponse(`Bootcamp not found with id: ${req.params.id}`, 404)
     );
   }
+
+  bootcamp.remove();
 
   res.status(200).json({ success: true, data: bootcamp });
 });
