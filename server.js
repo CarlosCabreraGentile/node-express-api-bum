@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const app = express();
 const cors = require('cors');
@@ -7,6 +8,7 @@ const PORT = port || 5000;
 const DBConnection = require('./config/dbConnection');
 const colors = require('colors');
 const errorHandler = require('./middleware/error'); 
+const fileupload = require('express-fileupload');
 //const logger = require('./middleware/logger'); //example logger middleware
 
 //Load env
@@ -16,10 +18,10 @@ const morgan = require('morgan');
 //Database connection
 DBConnection();
 
-//CORS Middleware
+// CORS Middleware
 app.use(cors());
 
-//Middleware
+// Middleware
 /**
  * Converts the JSON format code that comes from the browser
  * and the server can handle 
@@ -27,7 +29,13 @@ app.use(cors());
  */
 app.use(express.json());
 
-//Routers
+// File uploading
+app.use(fileupload());
+
+// Set static folder
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Routers
 const bootcampsRouter = require('./routes/bootcamps');
 const coursesRouter = require('./routes/courses');
 
@@ -35,12 +43,12 @@ const coursesRouter = require('./routes/courses');
 app.use('/api/v1/bootcamps', bootcampsRouter);
 app.use('/api/v1/courses', coursesRouter);
 
-//Middlewares after routes
-//custom middleware
+// Middlewares after routes
+// custom middleware
 // app.use(logger);
 app.use(errorHandler);
 
-//Dev loggind middleware
+// Dev loggin middleware
 if (nodeEnv === 'development') {
     app.use(morgan('dev'));
 }
@@ -50,7 +58,7 @@ const server = app.listen(PORT, () => {
     // console.log(`App running in ${nodeEnv} on port ${PORT}!`.yellow.bold); // with .env file 
 });
 
-//Hanlde unhandled promise rejections
+// Hanlde unhandled promise rejections
 process.on('unhandledRejection', (err, promise) => {
     console.log(`Error: ${err.message}`.red);
     //Close server & exit process

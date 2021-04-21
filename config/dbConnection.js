@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const connection = require('./db');
-const { mongodbURI } = require('./config'); // with .env file
+// const { mongodbURI } = require('./config'); // with .env file
 // const dotenv = require('dotenv'); // uncomment if no .env file
 
 // Load env variables
