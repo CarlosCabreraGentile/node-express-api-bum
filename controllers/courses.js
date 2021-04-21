@@ -11,26 +11,18 @@ const asyncHandler = require('../middleware/async');
  */
 
 let getCourses = asyncHandler(async (req, res, next) => {
-  let query;
-
   if (req.params.bootcampId) {
-    query = Course.find({ bootcamp: req.params.bootcampId });
-  } else {
-    // With populate we can return not just the bootcamp id
-    // but also i.e the name and description or any field we want
-    query = Course.find().populate({
-      path: 'bootcamp',
-      select: 'name description',
+    const course = await Course.find({ bootcamp: req.params.bootcampId });
+
+    return res.status(200).json({
+      success: true,
+      count: courses.length,
+      data: courses,
     });
+  } else {
+    res.status(200).json(res.advancedResults);
   }
 
-  const courses = await query;
-
-  res.status(200).json({
-    success: true,
-    count: courses.length,
-    data: courses,
-  });
 });
 
 /**
