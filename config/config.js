@@ -9,5 +9,7 @@ module.exports = {
   geocoderProvider: process.env.GEOCODER_PROVIDER,
   geocoderApiKey: process.env.GEOCODER_API_KEY,
   maxFileUpload: process.env.MAX_FILE_UPLOAD,
-  fileUploadPath: process.env.FILE_UPLOAD_PATH
+  fileUploadPath: process.env.FILE_UPLOAD_PATH,
+  secret: process.env.JWT_SECRET,
+  expire: process.env.JWT_EXPIRE
 };
