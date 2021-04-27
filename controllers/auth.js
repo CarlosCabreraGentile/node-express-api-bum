@@ -87,18 +87,22 @@ let login = asyncHandler(async (req, res, next) => {
 //   });
 // });
 
-// // @desc      Get current logged in user
-// // @route     GET /api/v1/auth/me
-// // @access    Private
-// exports.getMe = asyncHandler(async (req, res, next) => {
-//   // user is already available in req due to the protect middleware
-//   const user = req.user;
+/**
+ * @description Get current logged in user
+ * @route GET /api/v1/auth/me
+ * @access Private
+ */
+let getMe = asyncHandler(async (req, res, next) => {
+  // user is already available in req due to the protect middleware
+  // const user = req.user;
 
-//   res.status(200).json({
-//     success: true,
-//     data: user,
-//   });
-// });
+  const user = await User.findById(req.user.id);
+
+  res.status(200).json({
+    success: true,
+    data: user,
+  });
+});
 
 // // @desc      Update user details
 // // @route     PUT /api/v1/auth/updatedetails
@@ -275,5 +279,6 @@ const sendTokenResponse = (user, statusCode, res) => {
 
 module.exports = {
   register,
-  login
+  login,
+  getMe
 };
