@@ -7,6 +7,7 @@ const { port, nodeEnv } = require('./config/config') // with .env file
 const PORT = port || 5000;
 const DBConnection = require('./config/dbConnection');
 const colors = require('colors');
+const cookieParser = require('cookie-parser');
 const errorHandler = require('./middleware/error'); 
 const fileupload = require('express-fileupload');
 //const logger = require('./middleware/logger'); //example logger middleware
@@ -28,6 +29,9 @@ app.use(cors());
  * Body Parser
  */
 app.use(express.json());
+
+// Cookie parser
+app.use(cookieParser());
 
 // File uploading
 app.use(fileupload());

@@ -11,5 +11,6 @@ module.exports = {
   maxFileUpload: process.env.MAX_FILE_UPLOAD,
   fileUploadPath: process.env.FILE_UPLOAD_PATH,
   secret: process.env.JWT_SECRET,
-  expire: process.env.JWT_EXPIRE
+  expire: process.env.JWT_EXPIRE,
+  expireCookie: process.env.JWT_COOKIE_EXPIRE
 };
