@@ -1,7 +1,7 @@
 const asyncHandler = require('../middleware/async');
-// const crypto = require('crypto');
+const crypto = require('crypto');
 const ErrorResponse = require('../utils/errorResponse');
-// const sendEmail = require('../utils/sendEmail');
+const sendEmail = require('../utils/sendemail');
 const User = require('../models/User');
 const { expireCookie, nodeEnv } = require('../config/config');
 
@@ -104,111 +104,122 @@ let getMe = asyncHandler(async (req, res, next) => {
   });
 });
 
-// // @desc      Update user details
-// // @route     PUT /api/v1/auth/updatedetails
-// // @access    Private
-// exports.updateDetails = asyncHandler(async (req, res, next) => {
-//   const fieldsToUpdate = {
-//     name: req.body.name,
-//     email: req.body.email,
-//   };
+/**
+ * @description Update user details
+ * @route PUT /api/v1/auth/updatedetails
+ * @access Private
+ */
+let updateDetails = asyncHandler(async (req, res, next) => {
+  const fieldsToUpdate = {
+    name: req.body.name,
+    email: req.body.email,
+  };
 
-//   const user = await User.findByIdAndUpdate(req.user.id, fieldsToUpdate, {
-//     new: true,
-//     runValidators: true,
-//   });
+  const user = await User.findByIdAndUpdate(req.user.id, fieldsToUpdate, {
+    new: true,
+    runValidators: true,
+  });
 
-//   res.status(200).json({
-//     success: true,
-//     data: user,
-//   });
-// });
+  res.status(200).json({
+    success: true,
+    data: user,
+  });
+});
 
-// // @desc      Update password
-// // @route     PUT /api/v1/auth/updatepassword
-// // @access    Private
-// exports.updatePassword = asyncHandler(async (req, res, next) => {
-//   const user = await User.findById(req.user.id).select('+password');
+/**
+ * @description Update password
+ * @route PUT /api/v1/auth/updatepassword
+ * @access Private
+ */
+let updatePassword = asyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.user.id).select('+password'); // get all user + the password
+  console.log('user ----->', user);
+  // Check current password
+  if (!(await user.matchPassword(req.body.currentPassword))) {
+    return next(new ErrorResponse('Password is incorrect', 401));
+  }
 
-//   // Check current password
-//   if (!(await user.matchPassword(req.body.currentPassword))) {
-//     return next(new ErrorResponse('Password is incorrect', 401));
-//   }
+  user.password = req.body.newPassword;
+  
+  await user.save();
 
-//   user.password = req.body.newPassword;
-//   await user.save();
+  sendTokenResponse(user, 200, res);
+});
 
-//   sendTokenResponse(user, 200, res);
-// });
+/**
+ * @description Forgot password
+ * @route POST /api/v1/auth/forgotpassword
+ * @access Public
+ */
+let forgotPassword = asyncHandler(async (req, res, next) => {
+  const user = await User.findOne({ email: req.body.email });
 
-// // @desc      Forgot password
-// // @route     POST /api/v1/auth/forgotpassword
-// // @access    Public
-// exports.forgotPassword = asyncHandler(async (req, res, next) => {
-//   const user = await User.findOne({ email: req.body.email });
+  if (!user) {
+    return next(new ErrorResponse('There is no user with that email', 404));
+  }
 
-//   if (!user) {
-//     return next(new ErrorResponse('There is no user with that email', 404));
-//   }
+  // Get reset token
+  // using a method not a static, static should be called on the model
+  // a method is call on the actual user we are getting
+  const resetToken = user.getResetPasswordToken();
 
-//   // Get reset token
-//   const resetToken = user.getResetPasswordToken();
+  await user.save({ validateBeforeSave: false });
 
-//   await user.save({ validateBeforeSave: false });
+  // Create reset url
+  const resetUrl = `${req.protocol}://${req.get(
+    'host',
+  )}/api/v1/auth/resetpassword/${resetToken}`;
 
-//   // Create reset url
-//   const resetUrl = `${req.protocol}://${req.get(
-//     'host',
-//   )}/api/v1/auth/resetpassword/${resetToken}`;
+  const message = `You are receiving this email because you (or someone else) has requested the reset of a password. Please make a PUT request to: \n\n ${resetUrl}`;
 
-//   const message = `You are receiving this email because you (or someone else) has requested the reset of a password. Please make a PUT request to: \n\n ${resetUrl}`;
+  try {
+    await sendEmail({
+      email: user.email, // this email is in the body
+      subject: 'Password reset token',
+      message,
+    });
 
-//   try {
-//     await sendEmail({
-//       email: user.email,
-//       subject: 'Password reset token',
-//       message,
-//     });
+    res.status(200).json({ success: true, data: 'Email sent' });
+  } catch (err) {
+    console.log(err);
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
 
-//     res.status(200).json({ success: true, data: 'Email sent' });
-//   } catch (err) {
-//     console.log(err);
-//     user.resetPasswordToken = undefined;
-//     user.resetPasswordExpire = undefined;
+    await user.save({ validateBeforeSave: false });
 
-//     await user.save({ validateBeforeSave: false });
+    return next(new ErrorResponse('Email could not be sent', 500));
+  }
+});
 
-//     return next(new ErrorResponse('Email could not be sent', 500));
-//   }
-// });
+/**
+ * @description Reset password
+ * @route PUT /api/v1/auth/resetpassword/:resettoken
+ * @access Public
+ */
+let resetPassword = asyncHandler(async (req, res, next) => {
+  // Get hashed token
+  const resetPasswordToken = crypto
+    .createHash('sha256')
+    .update(req.params.resettoken)
+    .digest('hex');
 
-// // @desc      Reset password
-// // @route     PUT /api/v1/auth/resetpassword/:resettoken
-// // @access    Public
-// exports.resetPassword = asyncHandler(async (req, res, next) => {
-//   // Get hashed token
-//   const resetPasswordToken = crypto
-//     .createHash('sha256')
-//     .update(req.params.resettoken)
-//     .digest('hex');
+  const user = await User.findOne({
+    resetPasswordToken,
+    resetPasswordExpire: { $gt: Date.now() },
+  });
 
-//   const user = await User.findOne({
-//     resetPasswordToken,
-//     resetPasswordExpire: { $gt: Date.now() },
-//   });
+  if (!user) {
+    return next(new ErrorResponse('Invalid token', 400));
+  }
 
-//   if (!user) {
-//     return next(new ErrorResponse('Invalid token', 400));
-//   }
+  // Set new password
+  user.password = req.body.password;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpire = undefined;
+  await user.save();
 
-//   // Set new password
-//   user.password = req.body.password;
-//   user.resetPasswordToken = undefined;
-//   user.resetPasswordExpire = undefined;
-//   await user.save();
-
-//   sendTokenResponse(user, 200, res);
-// });
+  sendTokenResponse(user, 200, res);
+});
 
 // /**
 //  * @desc    Confirm Email
@@ -280,5 +291,9 @@ const sendTokenResponse = (user, statusCode, res) => {
 module.exports = {
   register,
   login,
-  getMe
+  getMe,
+  forgotPassword,
+  resetPassword,
+  updateDetails,
+  updatePassword
 };

@@ -4,10 +4,10 @@ const {
   login,
 //   logout,
    getMe,
-//   forgotPassword,
-//   resetPassword,
-//   updateDetails,
-//   updatePassword,
+   forgotPassword,
+   resetPassword,
+   updateDetails,
+   updatePassword,
 //   confirmEmail,
 } = require('../controllers/auth');
 
@@ -20,9 +20,9 @@ authRouter.post('/login', login);
 // authRouter.get('/logout', logout);
 authRouter.get('/me',protect, getMe);
 // authRouter.get('/confirmemail', confirmEmail);
-// authRouter.put('/updatedetails', protect, updateDetails);
-// authRouter.put('/updatepassword', protect, updatePassword);
-// authRouter.post('/forgotpassword', forgotPassword);
-// authRouter.put('/resetpassword/:resettoken', resetPassword);
+authRouter.put('/updatedetails', protect, updateDetails);
+authRouter.put('/updatepassword', protect, updatePassword);
+authRouter.post('/forgotpassword', forgotPassword);
+authRouter.put('/resetpassword/:resettoken', resetPassword);
 
 module.exports = authRouter;

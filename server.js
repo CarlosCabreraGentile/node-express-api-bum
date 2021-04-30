@@ -43,11 +43,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 const bootcampsRouter = require('./routes/bootcamps');
 const coursesRouter = require('./routes/courses');
 const authRouter = require('./routes/auth');
+const usersRouter = require('./routes/users');
 
 //Mount Routes
 app.use('/api/v1/bootcamps', bootcampsRouter);
 app.use('/api/v1/courses', coursesRouter);
 app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/users', usersRouter);
 
 // Middlewares after routes
 // custom middleware
