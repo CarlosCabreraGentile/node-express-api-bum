@@ -44,12 +44,14 @@ const bootcampsRouter = require('./routes/bootcamps');
 const coursesRouter = require('./routes/courses');
 const authRouter = require('./routes/auth');
 const usersRouter = require('./routes/users');
+const reviewsRouter = require('./routes/reviews');
 
 //Mount Routes
 app.use('/api/v1/bootcamps', bootcampsRouter);
 app.use('/api/v1/courses', coursesRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/users', usersRouter);
+app.use('/api/v1/reviews', reviewsRouter);
 
 // Middlewares after routes
 // custom middleware
