@@ -11,6 +11,8 @@ const cookieParser = require('cookie-parser');
 const mongoSanitize = require('express-mongo-sanitize');
 const helmet = require('helmet');
 const xss = require('xss-clean');
+const rateLimit = require('express-rate-limit');
+const hpp = require('hpp');
 const errorHandler = require('./middleware/error'); 
 const fileupload = require('express-fileupload');
 //const logger = require('./middleware/logger'); //example logger middleware
@@ -22,10 +24,11 @@ const morgan = require('morgan');
 //Database connection
 DBConnection();
 
-// CORS Middleware
+// Middlewares
+
+// CORS
 app.use(cors());
 
-// Middleware
 /**
  * Converts the JSON format code that comes from the browser
  * and the server can handle 
@@ -52,6 +55,16 @@ app.use(helmet());
 
 // Prevent XSS attack cross site scripting
 app.use(xss());
+
+// Rate limiting, control number of request to API for 10 minutes
+const limiter = rateLimit({
+    windowMs: 10 * 60 * 1000, // 10 minutes
+    max: 100
+});
+app.use(limiter);
+
+// Prevent htpp param pollution
+app.use(hpp());
 
 // Set static folder
 app.use(express.static(path.join(__dirname, 'public')));
