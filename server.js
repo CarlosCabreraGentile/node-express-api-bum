@@ -8,6 +8,7 @@ const PORT = port || 5000;
 const DBConnection = require('./config/dbConnection');
 const colors = require('colors');
 const cookieParser = require('cookie-parser');
+const mongoSanitize = require('express-mongo-sanitize');
 const errorHandler = require('./middleware/error'); 
 const fileupload = require('express-fileupload');
 //const logger = require('./middleware/logger'); //example logger middleware
@@ -33,8 +34,16 @@ app.use(express.json());
 // Cookie parser
 app.use(cookieParser());
 
+// Dev loggin middleware
+if (nodeEnv === 'development') {
+    app.use(morgan('dev'));
+}
+
 // File uploading
 app.use(fileupload());
+
+// Sanitize data
+app.use(mongoSanitize());
 
 // Set static folder
 app.use(express.static(path.join(__dirname, 'public')));
@@ -58,10 +67,6 @@ app.use('/api/v1/reviews', reviewsRouter);
 // app.use(logger);
 app.use(errorHandler);
 
-// Dev loggin middleware
-if (nodeEnv === 'development') {
-    app.use(morgan('dev'));
-}
 
 const server = app.listen(PORT, () => {
     console.log(`App running in ${process.env.NODE_ENV} on port ${PORT}!`.yellow.bold);

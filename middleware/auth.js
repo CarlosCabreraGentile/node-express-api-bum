@@ -15,9 +15,10 @@ let protect = asyncHandler(async (req, res, next) => {
   ) {
     // Set token from Bearer token in header
     token = req.headers.authorization.split(' ')[1];
-    // Set token from cookie
   }
-  // else if (req.cookies.token) {
+  // Set token from cookie
+  // comment this to use header authorization, if no token in headers then uses the cookie
+  // else if (req.cookies.token) { 
   //   token = req.cookies.token;
   // }
 
